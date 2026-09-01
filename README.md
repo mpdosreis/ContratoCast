@@ -52,61 +52,187 @@ Contratos costumam conter dados sensíveis: valores, nomes, CNPJs, cláusulas de
 - 16 GB de RAM
 - GPU dedicada (acelera bastante a etapa 2)
 
+**Não é necessário:** conhecimento de programação, Git instalado, conta em
+nenhum serviço, ou conexão com a internet depois da instalação.
+
 ---
 
 ## Instalação
 
-### 1. Clonar o repositório
+> **Nunca usou terminal antes?** Sem problema. Este guia assume que você não tem
+> nada instalado e explica cada passo, incluindo o que é cada coisa. Você **não
+> precisa instalar o Git** — o download é feito direto pelo navegador.
+>
+> Reserve cerca de 30 minutos na primeira vez. Depois de instalado, rodar o
+> pipeline leva poucos minutos.
 
-```bash
-git clone https://github.com/mpdosreis/contratos-podcast.git
-cd contratos-podcast
+### Antes de começar: o que é o "terminal"
+
+Algumas etapas pedem para você digitar comandos. Isso é feito numa janela preta
+(ou azul) chamada **terminal** ou **PowerShell** no Windows. Você digita uma
+linha, aperta Enter, e espera aparecer o resultado.
+
+**Como abrir o terminal já dentro da pasta certa (Windows):**
+
+1. Abra a pasta do projeto no Explorador de Arquivos
+2. Clique na **barra de endereço** no topo (onde aparece o caminho da pasta)
+3. Apague o que estiver escrito, digite `powershell` e aperte **Enter**
+
+Uma janela azul vai abrir, já posicionada na pasta do projeto. É nela que os
+comandos deste guia devem ser digitados.
+
+> Se um comando der erro, não tem problema — a seção
+> [Solução de problemas](#solução-de-problemas) no fim deste README explica os
+> erros mais comuns.
+
+---
+
+### Passo 1 — Baixar o projeto
+
+1. Acesse [github.com/mpdosreis/contratos-podcast](https://github.com/mpdosreis/contratos-podcast)
+2. Clique no botão verde **`< > Code`**
+3. No menu que abrir, clique em **Download ZIP**
+4. Abra a pasta Downloads, clique com o botão direito no arquivo baixado e
+   escolha **Extrair tudo**
+5. Extraia para um caminho curto e sem acentos — por exemplo `C:\contratos-podcast`
+
+> **Por que sem acentos?** Caminhos com acentos ou espaços às vezes causam erro
+> em ferramentas de linha de comando. `C:\contratos-podcast` funciona sempre.
+
+Ao entrar na pasta extraída, você deve ver os arquivos `1_pdf_para_markdown.py`,
+`2_markdown_para_roteiro.py`, `3_roteiro_para_audio.py` e `README.md`.
+
+> Se ao abrir a pasta você encontrar **outra pasta com o mesmo nome dentro**,
+> entre nela — o Windows às vezes cria essa camada extra ao extrair. Os arquivos
+> `.py` precisam estar visíveis logo ao abrir a pasta que você vai usar.
+
+---
+
+### Passo 2 — Instalar o Python
+
+O Python é a linguagem em que os scripts foram escritos. Sem ele, nada roda.
+
+1. Acesse [python.org/downloads](https://www.python.org/downloads/)
+2. Clique no botão amarelo **Download Python** (a versão mais recente serve)
+3. Execute o instalador baixado
+4. **Na primeira tela, marque a caixa "Add python.exe to PATH"** (fica embaixo,
+   e vem desmarcada por padrão)
+5. Clique em **Install Now** e aguarde
+
+> ⚠️ **A caixa "Add python.exe to PATH" é o erro nº 1 de quem está começando.**
+> Sem ela marcada, o terminal responde `python não é reconhecido` mais adiante.
+> Se você esqueceu, basta rodar o instalador de novo, escolher **Modify** e
+> marcar a opção.
+
+**Conferindo se deu certo:** abra o terminal (como explicado acima) e digite:
+
+```powershell
+python --version
 ```
 
-### 2. Dependências Python
+Deve aparecer algo como `Python 3.12.4`. Se aparecer uma mensagem de erro,
+reinstale marcando a caixa do PATH.
 
-```bash
+---
+
+### Passo 3 — Instalar as bibliotecas do Python
+
+Com o terminal aberto **dentro da pasta do projeto**, digite:
+
+```powershell
 pip install -r requirements.txt
 ```
 
-> **Windows:** ao instalar o Python, marque a caixa **"Add python.exe to PATH"** na primeira tela do instalador. Sem isso, os comandos `python` e `pip` não funcionam no terminal.
+Isso baixa duas bibliotecas: o **PyMuPDF** (lê os PDFs) e o **requests** (conversa
+com o Ollama). Vai aparecer bastante texto na tela — é normal. Quando voltar a
+aparecer o cursor esperando um novo comando, terminou.
 
-### 3. Ollama (geração do roteiro)
+---
 
-1. Baixe em [ollama.com/download](https://ollama.com/download) e instale.
-2. Baixe um modelo:
+### Passo 4 — Instalar o Ollama (a IA que escreve o roteiro)
 
-```bash
-# Máquinas com 8 GB de RAM ou CPU apenas:
+O Ollama é o programa que roda modelos de IA na sua máquina, sem internet.
+
+1. Acesse [ollama.com/download](https://ollama.com/download)
+2. Baixe a versão do seu sistema e instale normalmente (avançar, avançar,
+   concluir)
+3. Depois de instalado, ele fica rodando sozinho em segundo plano — você vai ver
+   um ícone de lhama perto do relógio, no canto inferior direito da tela
+
+Agora é preciso baixar um **modelo** (o "cérebro" que o Ollama usa). No terminal:
+
+```powershell
 ollama pull llama3.2:3b
-
-# Máquinas com 16 GB+:
-ollama pull llama3.1:8b
-
-# Máquinas com 32 GB+ ou GPU dedicada (melhor compreensão de texto jurídico):
-ollama pull qwen2.5:14b
 ```
 
-O Ollama sobe automaticamente como serviço e escuta em `localhost:11434`. Se não estiver rodando, use `ollama serve`.
+O download tem cerca de 2 GB e leva alguns minutos. Escolha o modelo conforme a
+memória RAM da sua máquina:
 
-### 4. Piper TTS (síntese de voz)
+| Sua RAM | Comando | Observação |
+|---|---|---|
+| 8 GB ou CPU sem placa de vídeo | `ollama pull llama3.2:3b` | leve e rápido |
+| 16 GB | `ollama pull llama3.1:8b` | melhor qualidade de texto |
+| 32 GB ou GPU dedicada | `ollama pull qwen2.5:14b` | melhor com texto jurídico |
 
-1. Baixe o binário do seu sistema em [github.com/rhasspy/piper/releases](https://github.com/rhasspy/piper/releases).
-   - Windows: `piper_windows_amd64.zip`
-   - Linux: `piper_linux_x86_64.tar.gz`
-   - macOS: `piper_macos_x64.tar.gz` (ou `aarch64` para Apple Silicon)
-2. Extraia e coloque o executável no PATH.
-   > **Windows:** o jeito mais simples é colocar o `piper.exe` (e as DLLs que vêm junto) **direto na raiz do projeto**, ao lado dos arquivos `.py`. Assim não é preciso mexer nas variáveis de ambiente.
-3. Baixe uma voz em português brasileiro — são **dois arquivos por voz** (`.onnx` e `.onnx.json`). Lista completa em [VOICES.md](https://github.com/rhasspy/piper/blob/master/VOICES.md).
+> **Não sabe quanta RAM tem?** No Windows, aperte `Ctrl + Shift + Esc` para abrir
+> o Gerenciador de Tarefas, vá na aba **Desempenho** e clique em **Memória**. Na
+> dúvida, comece pelo `llama3.2:3b` — ele funciona em qualquer máquina.
+
+---
+
+### Passo 5 — Instalar o Piper (a voz do podcast)
+
+O Piper transforma o roteiro em áudio falado. Ele não tem instalador: é só
+baixar e descompactar.
+
+1. Acesse [github.com/rhasspy/piper/releases](https://github.com/rhasspy/piper/releases)
+2. Na versão mais recente (no topo da página), procure a lista **Assets** e baixe
+   o arquivo do seu sistema:
+   - **Windows:** `piper_windows_amd64.zip`
+   - **Linux:** `piper_linux_x86_64.tar.gz`
+   - **macOS:** `piper_macos_x64.tar.gz` (ou `_aarch64` se for Apple Silicon)
+3. Extraia o arquivo baixado
+4. **Copie todo o conteúdo extraído para dentro da pasta do projeto** — ou seja,
+   o `piper.exe` deve ficar lado a lado com os arquivos `1_pdf_para_markdown.py`,
+   `2_markdown_para_roteiro.py` etc.
+
+> **Por que copiar para dentro da pasta?** Assim você evita mexer nas variáveis
+> de ambiente do Windows, que é uma configuração chata e fácil de errar. Deixando
+> o `piper.exe` junto dos scripts, tudo funciona sem configuração extra.
+>
+> ⚠️ Copie **todos** os arquivos extraídos, não apenas o `piper.exe`. As DLLs e a
+> pasta `espeak-ng-data` que vêm junto são necessárias para ele funcionar.
+
+---
+
+### Passo 6 — Baixar uma voz em português
+
+O Piper sozinho não fala nada: ele precisa de um arquivo de voz.
+
+1. Acesse a [lista oficial de vozes (VOICES.md)](https://github.com/rhasspy/piper/blob/master/VOICES.md)
+2. Aperte `Ctrl + F` e busque por **`pt_BR`**
+3. Escolha uma voz e baixe **os dois arquivos** dela:
 
 | Voz | Perfil | Peso |
 |---|---|---|
 | `pt_BR-faber-medium` | masculina, boa qualidade | médio |
 | `pt_BR-edresson-low` | masculina, mais leve | leve |
 
-4. Coloque os arquivos baixados na pasta `vozes/`.
+> ⚠️ **Cada voz tem dois arquivos** e os dois são obrigatórios:
+> - `pt_BR-faber-medium.onnx` (a voz em si, arquivo maior)
+> - `pt_BR-faber-medium.onnx.json` (as configurações, arquivo pequeno)
+>
+> Se faltar o `.json`, o Piper acusa erro ao rodar.
 
-Estrutura final esperada:
+4. Crie uma pasta chamada `vozes` dentro da pasta do projeto e coloque os dois
+   arquivos lá dentro.
+
+> **Quer duas vozes diferentes conversando no podcast?** Baixe também a
+> `pt_BR-edresson-low` (os dois arquivos dela) e coloque na mesma pasta `vozes`.
+
+---
+
+### Conferindo: sua pasta deve estar assim
 
 ```
 contratos-podcast/
@@ -114,57 +240,99 @@ contratos-podcast/
 ├── 2_markdown_para_roteiro.py
 ├── 3_roteiro_para_audio.py
 ├── requirements.txt
-├── piper.exe                 ← só no Windows, se optar por essa abordagem
-├── pdfs/                     ← coloque seus contratos aqui
-├── markdown/                 ← gerado pela etapa 1
-├── roteiros/                 ← gerado pela etapa 2
-├── audio/                    ← gerado pela etapa 3
-└── vozes/
+├── README.md
+├── piper.exe                      ← veio do Passo 5 (Windows)
+├── espeak-ng-data/                ← veio junto do Piper
+├── pdfs/                          ← crie esta pasta e coloque seus contratos
+└── vozes/                         ← crie esta pasta
     ├── pt_BR-faber-medium.onnx
     └── pt_BR-faber-medium.onnx.json
 ```
+
+As pastas `markdown/`, `roteiros/` e `audio/` **não precisam ser criadas por
+você** — os scripts geram automaticamente ao rodar.
+
+Se a sua pasta está parecida com isso, a instalação terminou. 🎉
 
 ---
 
 ## Uso
 
-**1.** Coloque os PDFs em `pdfs/`.
+São três comandos, rodados em sequência. Todos devem ser digitados no terminal
+**aberto dentro da pasta do projeto** (veja [como abrir](#antes-de-começar-o-que-é-o-terminal)).
 
-**2.** Extraia para markdown:
+### 1. Coloque os contratos na pasta `pdfs/`
 
-```bash
+Se a pasta não existir, crie uma chamada exatamente `pdfs` dentro do projeto.
+Pode colocar vários PDFs de uma vez — cada um vira um episódio separado.
+
+### 2. Extrair o texto dos PDFs
+
+```powershell
 python 1_pdf_para_markdown.py
 ```
 
-**3.** Gere o roteiro do podcast:
+O script mostra na tela o nome de cada arquivo enquanto processa. Ao terminar,
+uma pasta `markdown/` terá sido criada com os textos extraídos. Leva poucos
+segundos.
 
-```bash
-# Narração com um apresentador
+### 3. Gerar o roteiro do podcast
+
+```powershell
 python 2_markdown_para_roteiro.py --modelo llama3.2:3b
+```
 
-# Diálogo entre dois apresentadores
+Para um roteiro em formato de conversa entre dois apresentadores, acrescente
+`--vozes 2` no fim:
+
+```powershell
 python 2_markdown_para_roteiro.py --modelo llama3.2:3b --vozes 2
 ```
 
-**4.** Revise os arquivos em `roteiros/`. Esta etapa é importante — veja [Limitações](#limitações).
+> ⏱️ **Esta é a etapa mais demorada.** A IA está lendo o contrato inteiro e
+> escrevendo o roteiro. Em uma máquina sem placa de vídeo, pode levar de 2 a 10
+> minutos por contrato. Parece travado, mas está trabalhando — deixe rodando.
+>
+> 💡 Feche o navegador e outros programas pesados antes de rodar esta etapa,
+> principalmente se sua máquina tem 8 GB de RAM.
 
-**5.** Gere o áudio:
+> ⚠️ Troque `llama3.2:3b` pelo modelo que você baixou no Passo 4, caso tenha
+> escolhido outro.
 
-```bash
-# Uma voz
+### 4. Revise o roteiro antes de gerar o áudio
+
+Abra os arquivos `.txt` gerados na pasta `roteiros/` (podem ser abertos no
+Bloco de Notas) e leia o conteúdo.
+
+**Não pule esta etapa.** Modelos de IA que rodam localmente podem simplificar
+demais ou errar detalhes de valores, prazos e condições de rescisão. Corrija o
+que for necessário direto no arquivo `.txt` e salve — a próxima etapa vai usar
+exatamente o que estiver ali. Veja [Limitações](#limitações).
+
+### 5. Gerar o áudio
+
+```powershell
 python 3_roteiro_para_audio.py --voz-a vozes/pt_BR-faber-medium.onnx
-
-# Duas vozes (roteiro em formato diálogo)
-python 3_roteiro_para_audio.py \
-    --voz-a vozes/pt_BR-faber-medium.onnx \
-    --voz-b vozes/pt_BR-edresson-low.onnx
 ```
 
-Os episódios finais ficam em `audio/*.wav`.
+Com duas vozes (só faz sentido se você usou `--vozes 2` na etapa 3):
 
-**Converter para MP3** (requer [ffmpeg](https://ffmpeg.org/)):
+```powershell
+python 3_roteiro_para_audio.py --voz-a vozes/pt_BR-faber-medium.onnx --voz-b vozes/pt_BR-edresson-low.onnx
+```
 
-```bash
+> ⚠️ O caminho depois de `--voz-a` precisa bater exatamente com o nome do arquivo
+> que você baixou. Se você escolheu outra voz, ajuste o nome no comando.
+
+Pronto — os episódios finais estarão em `audio/`, em formato `.wav`. Podem ser
+abertos em qualquer tocador de música.
+
+### Opcional: converter para MP3
+
+Arquivos `.wav` são grandes. Para converter em MP3, instale o
+[ffmpeg](https://ffmpeg.org/) e rode:
+
+```powershell
 ffmpeg -i audio/contrato.wav -b:a 128k audio/contrato.mp3
 ```
 
@@ -269,17 +437,40 @@ comando = [
 
 ## Solução de problemas
 
+**`python não é reconhecido como um comando interno ou externo`**
+O Python não foi adicionado ao PATH durante a instalação. Rode o instalador do
+Python de novo, escolha **Modify** e marque **"Add python.exe to PATH"**. Feche
+e reabra o terminal depois.
+
+**`can't open file ... [Errno 2] No such file or directory`**
+O terminal está aberto em outra pasta, não na do projeto. Digite `dir` e aperte
+Enter: se os arquivos `.py` não aparecerem na lista, você está no lugar errado.
+Feche o terminal e abra novamente pela barra de endereço da pasta correta.
+
 **`ModuleNotFoundError: No module named 'fitz'`**
-O PyMuPDF não foi instalado. Rode `pip install pymupdf`.
+As bibliotecas do Passo 3 não foram instaladas. Rode `pip install -r requirements.txt`
+com o terminal na pasta do projeto.
+
+**`Nenhum PDF encontrado em ...`**
+A pasta `pdfs` não existe ou está vazia. Crie a pasta com esse nome exato (tudo
+minúsculo, sem acento) dentro do projeto e coloque os PDFs dentro.
 
 **`Não consegui conectar ao Ollama em localhost:11434`**
-O serviço não está rodando. Abra o Ollama (Windows/macOS) ou rode `ollama serve` no terminal.
+O Ollama não está rodando. Procure o ícone de lhama perto do relógio; se não
+estiver lá, abra o Ollama pelo menu Iniciar e espere alguns segundos antes de
+rodar o comando de novo.
 
 **`ERRO: comando 'piper' não encontrado`**
-O executável não está no PATH. No Windows, a solução mais simples é copiar o `piper.exe` para a raiz do projeto.
+O `piper.exe` não está na pasta do projeto. Confira se ele está lado a lado com
+os arquivos `.py` — e se as DLLs e a pasta `espeak-ng-data` foram copiadas junto.
+
+**O Piper reclama de arquivo faltando ao gerar o áudio**
+Provavelmente falta o segundo arquivo da voz. Cada voz tem um `.onnx` **e** um
+`.onnx.json`, e os dois precisam estar na pasta `vozes`.
 
 **A máquina trava ou fica muito lenta na etapa 2**
-O modelo é grande demais para a RAM disponível. Troque para `llama3.2:3b` ou `phi3:mini` e feche navegador e outros aplicativos pesados antes de rodar.
+O modelo é grande demais para a RAM disponível. Troque para `llama3.2:3b` ou
+`phi3:mini` e feche navegador e outros aplicativos pesados antes de rodar.
 
 **O áudio sai com pronúncia estranha em siglas e números**
 Comum em TTS. Ajuste o prompt da etapa 2 para pedir que o modelo escreva valores e siglas por extenso — ex. "R$ 1.500,00" → "mil e quinhentos reais".
