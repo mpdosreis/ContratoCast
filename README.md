@@ -59,7 +59,7 @@ Contratos costumam conter dados sensíveis: valores, nomes, CNPJs, cláusulas de
 ### 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/SEU_USUARIO/contratos-podcast.git
+git clone https://github.com/mpdosreis/contratos-podcast.git
 cd contratos-podcast
 ```
 
