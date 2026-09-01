@@ -1,0 +1,42 @@
+# === CONTEÚDO SENSÍVEL — nunca commitar contratos ou seus derivados ===
+pdfs/*
+!pdfs/.gitkeep
+markdown/*
+!markdown/.gitkeep
+roteiros/*
+!roteiros/.gitkeep
+audio/*
+!audio/.gitkeep
+
+# === Modelos de voz (arquivos grandes, baixados separadamente) ===
+vozes/*
+!vozes/.gitkeep
+*.onnx
+*.onnx.json
+
+# === Binários do Piper ===
+piper.exe
+piper
+*.dll
+*.so
+*.dylib
+espeak-ng-data/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.Python
+
+# === Sistema operacional ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Editores ===
+.vscode/
+.idea/
+*.swp
